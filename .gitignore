@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual env
+.venv/
+venv/
+
+# Environment variables
+.env
+backend/.env
+frontend/.env.local
+
+# PyCharm
+.idea/
+
+# Next.js
+frontend/node_modules/
+frontend/.next/
+
+# macOS
+.DS_Store
