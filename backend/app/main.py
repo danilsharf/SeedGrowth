@@ -1,8 +1,17 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from app.db import supabase
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class EntryCreate(BaseModel):
     raw_text: str
@@ -43,3 +52,14 @@ def create_entry(entry: EntryCreate):
         .execute()
     )
     return result.data
+
+@app.delete("/entries/{entry_id}")
+def delete_entry(entry_id: str):
+    result = (
+        supabase
+        .table("daily_entries")
+        .delete()
+        .eq("id", entry_id)
+        .execute()
+    )
+    return {"success": True}
