@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from app.db import supabase
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.embeddings import create_embedding
 app = FastAPI()
 
 app.add_middleware(
@@ -55,11 +55,15 @@ def get_entries():
 
 @app.post("/entries")
 def create_entry(entry: EntryCreate):
+    embedding = create_embedding(
+        entry.raw_text
+    )
     result = (
         supabase
         .table("daily_entries")
         .insert({
-            "raw_text": entry.raw_text
+            "raw_text": entry.raw_text,
+            "embedding": embedding
         })
         .execute()
     )
