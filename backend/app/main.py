@@ -15,6 +15,14 @@ app.add_middleware(
 
 class EntryCreate(BaseModel):
     raw_text: str
+
+class GoalCreate(BaseModel):
+    title: str
+    description: str
+
+class SearchRequest(BaseModel):
+    query: str
+
 @app.get("/")
 def root():
     return {"message": "SeedGrowth API"}
@@ -79,3 +87,21 @@ def delete_entry(entry_id: str):
         .execute()
     )
     return {"success": True}
+
+@app.post("/search")
+def search_entries(request: SearchRequest):
+    query_embedding = create_embedding(
+        request.query
+    )
+    result = (
+        supabase
+        .rpc(
+            "match_entries",
+            {
+                "query_embedding": query_embedding,
+                "match_count": 5
+            }
+        )
+        .execute()
+    )
+    return result.data
