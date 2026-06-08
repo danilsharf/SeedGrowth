@@ -30,6 +30,18 @@ def test_db():
     )
     return result.data
 
+@app.get("/goals/current")
+def get_current_goal():
+    response = (
+        supabase
+        .table("goals")
+        .select("*")
+        .eq("status", "active")
+        .limit(1)
+        .execute()
+    )
+    return response.data[0] if response.data else None
+
 @app.get("/entries")
 def get_entries():
     result = (
