@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from app.db import supabase
 from fastapi.middleware.cors import CORSMiddleware
 from app.embeddings import create_embedding
+from app.rag import generate_rag_answer
+from pydantic import BaseModel
 app = FastAPI()
 
 app.add_middleware(
@@ -22,6 +24,9 @@ class GoalCreate(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
+
+class AskRequest(BaseModel):
+    question: str
 
 @app.get("/")
 def root():
@@ -105,3 +110,28 @@ def search_entries(request: SearchRequest):
         .execute()
     )
     return result.data
+
+@app.post("/ask")
+def ask_question(request: AskRequest):
+    query_embedding = create_embedding(
+        request.question
+    )
+    results = supabase.rpc(
+        "match_entries",
+        {
+            "query_embedding": query_embedding,
+            "match_count": 5
+        }
+    ).execute()
+    entries = [
+        f"{row['created_at']}: {row['raw_text']}"
+        for row in results.data
+    ]
+    answer = generate_rag_answer(
+        request.question,
+        entries
+    )
+    return {
+        "answer": answer,
+        "sources": results.data
+    }
